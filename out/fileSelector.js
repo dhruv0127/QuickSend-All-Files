@@ -15,23 +15,13 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FileSelector = void 0;
 const vscode = __importStar(require("vscode"));
@@ -152,7 +142,7 @@ class FileSelector {
     }
     /**
      * Generate the webview HTML content
-     * Modified to handle all file types with appropriate icons
+     * Modified to handle all file types with appropriate icons and support for dark mode
      */
     getWebviewContent(files, webview) {
         // Convert absolute paths to relative paths for the UI
@@ -178,36 +168,52 @@ class FileSelector {
           :root {
             /* Orange Color Palette */
             --primary-orange: #FF5F15;
-            --primary-orange-zerofix:rgba(255, 95, 21, 0.02);
+            --primary-orange-zerofix: rgba(255, 95, 21, 0.02);
             --orange-hover: #E04700;
             --light-orange: #FFF0E8;
             --orange-accent: #FF8C42;
             --soft-orange: #FF7F45;
             
-            /* Base UI Colors */
-            --bg-white: #FFFFFF;
-            --text-dark: #1A1A1A;
-            --text-secondary: #595965;
-            --border-light: #E5E5E5;
-            --input-bg: #F7F7F8;
-            --background-primary: var(--vscode-editor-background);
-            --background-secondary: var(--vscode-sideBar-background);
-            --text-primary: var(--vscode-foreground);
+            /* Theme-aware colors using VSCode CSS variables */
+            --app-bg: var(--vscode-editor-background);
+            --panel-bg: var(--vscode-sideBar-background, #f3f3f3);
+            --header-bg: var(--vscode-titleBar-activeBackground, #f3f3f3);
+            --item-hover-bg: rgba(255, 95, 21, 0.1);
+            --border-color: var(--vscode-widget-border, #e5e5e5);
+            --text-color: var(--vscode-foreground, #333333);
+            --text-secondary: var(--vscode-descriptionForeground, #717171);
+            --input-bg: var(--vscode-input-background, #ffffff);
+            --input-border: var(--vscode-input-border, #e5e5e5);
+            --directory-header-bg: var(--vscode-sideBarSectionHeader-background, #f3f3f3);
+            --checkbox-bg: var(--vscode-checkbox-background, #ffffff);
+            --btn-default-bg: var(--vscode-button-secondaryBackground, #f3f3f3);
+            --btn-default-text: var(--vscode-button-secondaryForeground, #333333);
+            --btn-default-hover: var(--vscode-button-secondaryHoverBackground, #e5e5e5);
+            --btn-primary-bg: var(--primary-orange);
+            --btn-primary-text: white;
+            --btn-primary-hover: var(--orange-hover);
+            --tooltip-bg: var(--vscode-editorHoverWidget-background, rgba(26, 26, 26, 0.9));
+            --tooltip-text: var(--vscode-editorHoverWidget-foreground, white);
+            --scrollbar-track: var(--vscode-scrollbarSlider-background, rgba(100, 100, 100, 0.2));
+            --scrollbar-thumb: rgba(255, 95, 21, 0.3);
+            --scrollbar-thumb-hover: rgba(255, 95, 21, 0.5);
             --shadow-color: rgba(0, 0, 0, 0.1);
+            --directory-group-bg: var(--vscode-editor-background);
+            --file-list-bg: var(--vscode-editor-background);
           }
           
           * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
           }
           
           body {
             padding: 0;
             margin: 0;
-            color: var(--text-primary);
-            background-color: var(--background-primary);
+            color: var(--text-color);
+            background-color: var(--app-bg);
             line-height: 1.5;
             height: 100vh;
             width: 100vw;
@@ -219,17 +225,17 @@ class FileSelector {
             height: 100vh;
             display: flex;
             flex-direction: column;
-            background: rgba(var(--background-secondary), 0.7);
+            background: var(--app-bg);
           }
           
           .app-header {
-            background: var(--primary-orange-zerofix);
-            color: white;
+            background: var(--header-bg);
             padding: 16px 24px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             position: relative;
+            border-bottom: 1px solid var(--border-color);
           }
           
           .header-left {
@@ -260,7 +266,7 @@ class FileSelector {
             font-weight: normal;
             opacity: 0.9;
             margin-left: 15px;
-            color: #1c1c1c;
+            color: var(--text-color);
           }
           
           .header-right {
@@ -271,17 +277,17 @@ class FileSelector {
           .search-bar {
             padding: 16px 24px;
             position: relative;
-            background: rgba(var(--background-primary), 0.5);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: var(--panel-bg);
+            border-bottom: 1px solid var(--border-color);
           }
           
           .search-input {
             width: 100%;
             padding: 10px 16px 10px 38px;
             border-radius: 6px;
-            border: 1px solid var(--border-light);
+            border: 1px solid var(--input-border);
             background-color: var(--input-bg);
-            color: var(--text-dark);
+            color: var(--text-color);
             font-size: 14px;
             outline: none;
             transition: all 0.2s;
@@ -304,6 +310,7 @@ class FileSelector {
             flex: 1;
             padding: 0;
             overflow-y: auto;
+            background-color: var(--app-bg);
           }
           
           .file-count {
@@ -312,10 +319,9 @@ class FileSelector {
             font-size: 13px;
             letter-spacing: 0.01em;
             border-bottom: 1px solid var(--primary-orange);
-            background: rgba(var(--background-primary), 0.3);
+            background: var(--panel-bg);
             position: sticky;
             top: -15px;
-            background: white;
             z-index: 7;
             transition: all 0.3s ease-out;
           }
@@ -323,14 +329,15 @@ class FileSelector {
           .directories-wrapper {
             padding: 16px 24px;
             height: max-content;
+            background-color: var(--app-bg);
           }
           
           .directory-group {
             margin-bottom: 16px;
             overflow: hidden;
             border-radius: 8px;
-            border: 1px solid var(--border-light);
-            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            background: var(--directory-group-bg);
             transition: box-shadow 0.3s;
           }
           
@@ -339,25 +346,25 @@ class FileSelector {
           }
           
           .directory-header {
-            background: rgba(247, 247, 248, 0.7);
+            background: var(--directory-header-bg);
             padding: 12px 16px;
             cursor: pointer;
             user-select: none;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-bottom: 1px solid var(--border-light);
+            border-bottom: 1px solid var(--border-color);
             transition: background-color 0.2s;
           }
           
           .directory-header:hover {
-            background: rgba(255, 240, 232, 0.5);
+            background: var(--item-hover-bg);
           }
           
           .directory-name {
             font-weight: 500;
             font-size: 14px;
-            color: var(--text-dark);
+            color: var(--text-color);
             display: flex;
             align-items: center;
           }
@@ -372,7 +379,7 @@ class FileSelector {
             max-height: 300px;
             overflow-y: auto;
             padding: 8px 0;
-            background: rgba(255, 255, 255, 0.02);
+            background: var(--file-list-bg);
           }
           
           .file-item {
@@ -386,20 +393,20 @@ class FileSelector {
           }
           
           .file-item:hover {
-            background: rgba(255, 95, 21, 0.06);
+            background: var(--item-hover-bg);
           }
           
           .file-checkbox {
             appearance: none;
             width: 18px;
             height: 18px;
-            border: 1.5px solid #D1D1D6;
+            border: 1.5px solid var(--border-color);
             border-radius: 4px;
             margin-right: 12px;
             position: relative;
             cursor: pointer;
             transition: all 0.2s;
-            background-color: white;
+            background-color: var(--checkbox-bg);
           }
           
           .file-checkbox:checked {
@@ -428,7 +435,7 @@ class FileSelector {
             overflow: hidden;
             text-overflow: ellipsis;
             padding: 2px 0;
-            color: var(--text-dark);
+            color: var(--text-color);
           }
           
           .file-icon {
@@ -437,15 +444,13 @@ class FileSelector {
           }
           
           .actions-panel {
-            background: rgba(var(--background-secondary), 0.8);
+            background: var(--panel-bg);
             padding: 16px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+            border-top: 1px solid var(--border-color);
+            box-shadow: 0 -4px 12px var(--shadow-color);
           }
           
           .selection-actions {
@@ -465,22 +470,22 @@ class FileSelector {
           }
           
           .btn-default {
-            background-color: var(--input-bg);
-            color: var(--text-dark);
-            border: 1px solid var(--border-light);
+            background-color: var(--btn-default-bg);
+            color: var(--btn-default-text);
+            border: 1px solid var(--border-color);
           }
           
           .btn-default:hover {
-            background-color: #EAEAEB;
+            background-color: var(--btn-default-hover);
           }
           
           .btn-primary {
-            background-color: var(--primary-orange);
-            color: white;
+            background-color: var(--btn-primary-bg);
+            color: var(--btn-primary-text);
           }
           
           .btn-primary:hover {
-            background-color: var(--orange-hover);
+            background-color: var(--btn-primary-hover);
           }
           
           .btn-primary:disabled {
@@ -512,8 +517,8 @@ class FileSelector {
           
           .tooltip-text {
             visibility: hidden;
-            background: rgba(26, 26, 26, 0.9);
-            color: #fff;
+            background: var(--tooltip-bg);
+            color: var(--tooltip-text);
             text-align: center;
             border-radius: 6px;
             padding: 6px 10px;
@@ -527,7 +532,7 @@ class FileSelector {
             font-size: 12px;
             white-space: nowrap;
             font-weight: 400;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 4px 12px var(--shadow-color);
           }
           
           .tooltip:hover .tooltip-text {
@@ -586,19 +591,19 @@ class FileSelector {
 
           .file-list::-webkit-scrollbar-track,
           .directories-wrapper::-webkit-scrollbar-track {
-            background: rgba(229, 229, 229, 0.5);
+            background: var(--scrollbar-track);
             border-radius: 10px;
           }
 
           .file-list::-webkit-scrollbar-thumb,
           .directories-wrapper::-webkit-scrollbar-thumb {
-            background: rgba(255, 95, 21, 0.2);
+            background: var(--scrollbar-thumb);
             border-radius: 10px;
           }
 
           .file-list::-webkit-scrollbar-thumb:hover,
           .directories-wrapper::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 95, 21, 0.4);
+            background: var(--scrollbar-thumb-hover);
           }
 
           /* Responsive styles */

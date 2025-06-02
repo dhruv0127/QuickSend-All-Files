@@ -2,7 +2,7 @@
   "name": "quicksend-code2ai",
   "displayName": "QuickSend Code2AI - Share Code with AI Assistants",
   "description": "Share multiple code files with ChatGPT, Claude & Gemini directly from VS Code. Format & copy code to AI assistants with one click.",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "publisher": "ParekhDhruv",
   "engines": {
     "vscode": "^1.100.0"
